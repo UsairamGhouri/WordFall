@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordFall</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background-color: #0d0d0d;
+            color: #e0e0e0;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 2rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        canvas {
+            background-color: #1a1a1a;
+            border: 4px solid #444;
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+        .game-panel {
+            width: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            text-align: center;
+        }
+        .panel-box {
+            background-color: #1a1a1a;
+            border: 4px solid #444;
+            padding: 1rem;
+            text-transform: uppercase;
+        }
+        .panel-box h2 {
+            font-size: 1rem;
+            color: #00ffff;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 5px #00ffff;
+        }
+        .panel-box p {
+            font-size: 1.5rem;
+            color: #fff;
+        }
+        #last-words {
+            font-size: 1rem;
+            line-height: 1.4rem;
+            height: 2.8rem;
+            text-transform: uppercase;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        #modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            z-index: 100;
+        }
+        #modal-content {
+            background: #1a1a1a;
+            padding: 2rem 3rem;
+            border: 4px solid #00ffff;
+            box-shadow: 0 0 30px #00ffff;
+        }
+        #modal h1 {
+            font-size: 2.5rem;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+            margin-bottom: 1rem;
+        }
+        #modal p {
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+        #modal-score {
+             font-size: 1.5rem;
+             color: #ffff00;
+             margin-bottom: 2rem;
+        }
+        button {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            padding: 1rem 2rem;
+            background-color: #1a1a1a;
+            color: #00ffff;
+            border: 2px solid #00ffff;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px #00ffff;
+        }
+        button:hover {
+            background-color: #00ffff;
+            color: #1a1a1a;
+            box-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff;
+        }
+        button:disabled {
+            color: #444;
+            border-color: #444;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .controls {
+            margin-top: 2rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+        }
+        .key {
+            display: inline-block;
+            padding: 0.5rem 0.75rem;
+            border: 2px solid #444;
+            background-color: #1a1a1a;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #e0e0e0;
+        }
+        .key.space {
+            padding: 0.5rem 3rem;
+        }
+        .controls-label {
+             text-transform: uppercase;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- Game Title -->
+    <h1 class="text-5xl md:text-6xl text-cyan-400 mb-4 text-center" style="text-shadow: 0 0 10px #00ffff, 0 0 20px #ff00ff;">WordFall</h1>
+
+    <!-- Main Game Container -->
+    <div class="container">
+        <!-- Game Canvas Wrapper -->
+        <div class="relative">
+            <canvas id="gameCanvas"></canvas>
+            <div id="pauseOverlay" class="absolute inset-0 bg-black bg-opacity-75 text-white text-4xl hidden justify-center items-center" style="font-family: 'Press Start 2P', cursive; z-index: 5; text-align: center;">PAUSED</div>
+        </div>
+
+        <!-- Game Info Panel -->
+        <div class="game-panel">
+            <div class="panel-box">
+                <h2>Score</h2>
+                <p id="score">0</p>
+            </div>
+            <div class="panel-box">
+                <h2>Level</h2>
+                <p id="level">1</p>
+            </div>
+            <div class="panel-box">
+                <h2>Words</h2>
+                <p id="words-cleared">0</p>
+            </div>
+            <div class="panel-box">
+                <h2>LAST WORDS</h2>
+                <p id="last-words">&nbsp;</p>
+            </div>
+            <button id="pauseButton" class="w-full">Pause</button>
+        </div>
+    </div>
+
+    <!-- Controls Info -->
+    <div class="controls">
+        <span class="controls-label">Move:</span>
+        <span class="key">&#9664;</span>
+        <span class="key">&#9654;</span>
+        <span class="controls-label">Speed Up:</span>
+        <span class="key">&darr;</span>
+        <span class="controls-label">Rotate:</span>
+        <span class="key space">Space</span>
+    </div>
+
+    <!-- Modal for Start/Game Over -->
+    <div id="modal">
+        <div id="modal-content">
+            <h1 id="modal-title">WordFall</h1>
+            <p id="modal-text">Clear letters by forming words.</p>
+            <p id="modal-score"></p>
+            <button id="startButton">Loading Dictionary...</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Game Setup ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const wordsClearedEl = document.getElementById('words-cleared');
+        const lastWordsEl = document.getElementById('last-words');
+
+        const modal = document.getElementById('modal');
+        const modalTitle = document.getElementById('modal-title');
+        const modalText = document.getElementById('modal-text');
+        const modalScore = document.getElementById('modal-score');
+        const startButton = document.getElementById('startButton');
+        const pauseButton = document.getElementById('pauseButton');
+        const pauseOverlay = document.getElementById('pauseOverlay');
+
+        const COLS = 10;
+        const ROWS = 20;
+        const BLOCK_SIZE = 30;
+
+        canvas.width = COLS * BLOCK_SIZE;
+        canvas.height = ROWS * BLOCK_SIZE;
+        ctx.imageSmoothingEnabled = false; 
+
+        // --- Sound Effects ---
+        const synth = new Tone.Synth().toDestination();
+
+        const moveSound = () => synth.triggerAttackRelease("C2", "8n");
+        const rotateSound = () => synth.triggerAttackRelease("E3", "8n");
+        const dropSound = () => synth.triggerAttackRelease("C3", "8n");
+        const clearSound = () => {
+            const now = Tone.now();
+            synth.triggerAttackRelease("C4", "8n", now + 0.05);
+            synth.triggerAttackRelease("E4", "8n", now + 0.15);
+            synth.triggerAttackRelease("G4", "8n", now + 0.25);
+        };
+        const gameOverSound = () => {
+            const now = Tone.now();
+            synth.triggerAttackRelease("G2", "4n", now + 0.05);
+            synth.triggerAttackRelease("F#2", "4n", now + 0.25);
+            synth.triggerAttackRelease("F2", "4n", now + 0.45);
+            synth.triggerAttackRelease("E2", "2n", now + 0.65);
+        };
+        
+        let DICTIONARY = new Set();
+
+        // --- Game State ---
+        let grid;
+        let currentPiece;
+        let score;
+        let level;
+        let wordsCleared;
+        let lastWordsHistory;
+        let dropCounter;
+        let dropInterval;
+        let gameOver;
+        let lastTime;
+        let animationFrameId;
+        let isPaused;
+        let wordsForNextLevel;
+
+
+        // --- Game Pieces (Tetrominos) ---
+        const PIECES = [
+            [[1, 1, 1, 1]], // I (4)
+            [[1, 0, 0], [1, 1, 1]], // J (3)
+            [[0, 0, 1], [1, 1, 1]], // L (3)
+            [[1, 1], [1, 1]], // O (4)
+            [[0, 1, 1], [1, 1, 0]], // S (3)
+            [[0, 1, 0], [1, 1, 1]], // T (3)
+            [[1, 1, 0], [0, 1, 1]], // Z (3)
+            [[1, 1]],       // Domino (2)
+            [[1], [1]],      // Vertical Domino (2)
+            [[1]]           // Single (1)
+        ];
+
+        const COLORS = ['#FF00FF', '#00FFFF', '#FFFF00', '#00FF00', '#FF7F00', '#0000FF', '#FF0000', '#FFA500', '#DDA0DD', '#8A2BE2'];
+        const VOWELS = "AEIOU";
+        const CONSONANTS = "BCDFGHJKLMNPQRSTVWXYZ";
+
+        async function loadDictionary() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt');
+                const text = await response.text();
+                // Filter for words with 3+ letters and at least one vowel to exclude acronyms
+                DICTIONARY = new Set(text.split('\n').map(word => word.trim().toUpperCase()).filter(word => word.length >= 3 && /[AEIOU]/.test(word)));
+                console.log(`Dictionary loaded with ${DICTIONARY.size} words.`);
+                startButton.disabled = false;
+                startButton.textContent = "Start Game";
+            } catch (error) {
+                console.error("Failed to load dictionary:", error);
+                modalText.textContent = "Error: Could not load dictionary. Please refresh.";
+            }
+        }
+
+        function createPiece() {
+            const typeId = Math.floor(Math.random() * PIECES.length);
+            const shape = PIECES[typeId];
+            const letterShape = shape.map(row => row.map(cell => {
+                if (cell === 1) return getRandomLetter();
+                return 0;
+            }));
+
+            return {
+                x: Math.floor(COLS / 2) - Math.floor(shape[0].length / 2),
+                y: 0,
+                shape: letterShape,
+                color: COLORS[typeId]
+            };
+        }
+
+        function getRandomLetter() {
+            const letters = Math.random() < 0.4 ? VOWELS : CONSONANTS;
+            return letters.charAt(Math.floor(Math.random() * letters.length));
+        }
+
+        function resetGame() {
+            grid = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
+            score = 0;
+            level = 1;
+            wordsCleared = 0;
+            lastWordsHistory = [];
+            gameOver = false;
+            isPaused = false;
+            wordsForNextLevel = 10;
+            dropInterval = 1000;
+            currentPiece = createPiece();
+            updateInfo();
+            pauseOverlay.classList.add('hidden');
+            pauseButton.textContent = 'Pause';
+        }
+
+        function updateInfo() {
+            scoreEl.textContent = score;
+            levelEl.textContent = level;
+            wordsClearedEl.textContent = wordsCleared;
+            lastWordsEl.innerHTML = lastWordsHistory.length > 0 ? lastWordsHistory.join('<br>') : '&nbsp;';
+        }
+
+        // --- Game Loop and Drawing ---
+        function gameLoop(time = 0) {
+            if (gameOver || isPaused) return;
+            if (!lastTime) lastTime = time;
+            const deltaTime = time - lastTime;
+            lastTime = time;
+
+            dropCounter += deltaTime;
+            if (dropCounter > dropInterval) {
+                pieceDrop();
+            }
+
+            draw();
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
+
+        function draw() {
+            ctx.fillStyle = '#1a1a1a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+            drawPiece(currentPiece);
+        }
+        
+        function drawGrid() {
+            grid.forEach((row, y) => {
+                row.forEach((cell, x) => {
+                    if (cell) {
+                        ctx.fillStyle = cell.color;
+                        ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                        ctx.strokeStyle = '#1a1a1a';
+                        ctx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.font = '16px "Press Start 2P"';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.shadowColor = '#000000';
+                        ctx.shadowBlur = 4;
+                        ctx.fillText(cell.letter, (x + 0.5) * BLOCK_SIZE, (y + 0.55) * BLOCK_SIZE);
+                        ctx.shadowBlur = 0;
+                    }
+                });
+            });
+        }
+
+        function drawPiece(piece) {
+            ctx.fillStyle = piece.color;
+            piece.shape.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        const pieceX = piece.x + x;
+                        const pieceY = piece.y + y;
+                        ctx.fillRect(pieceX * BLOCK_SIZE, pieceY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                        ctx.strokeStyle = '#1a1a1a';
+                        ctx.strokeRect(pieceX * BLOCK_SIZE, pieceY * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.font = '16px "Press Start 2P"';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.shadowColor = '#000000';
+                        ctx.shadowBlur = 4;
+                        ctx.fillText(value, (pieceX + 0.5) * BLOCK_SIZE, (pieceY + 0.55) * BLOCK_SIZE);
+                        ctx.shadowBlur = 0;
+                    }
+                });
+            });
+        }
+        
+        // --- Piece Movement & Collision ---
+        function pieceDrop() {
+            if (isPaused) return;
+            currentPiece.y++;
+            if (collides()) {
+                currentPiece.y--;
+                solidifyPiece();
+                checkForWords();
+                currentPiece = createPiece();
+                if (collides()) {
+                    endGame();
+                }
+            }
+            dropCounter = 0;
+        }
+        
+        function pieceMove(dir) {
+            if(gameOver) return;
+            moveSound();
+            currentPiece.x += dir;
+            if (collides()) {
+                currentPiece.x -= dir;
+            }
+        }
+
+        function pieceRotate() {
+            if(gameOver) return;
+            rotateSound();
+            const originalShape = currentPiece.shape;
+            const newShape = currentPiece.shape[0].map((_, colIndex) =>
+                currentPiece.shape.map(row => row[colIndex]).reverse()
+            );
+            currentPiece.shape = newShape;
+
+            let offset = 1;
+            while(collides()) {
+                currentPiece.x += offset;
+                offset = -(offset + (offset > 0 ? 1 : -1));
+                if(offset > currentPiece.shape[0].length) {
+                    currentPiece.shape = originalShape;
+                    return;
+                }
+            }
+        }
+
+        function collides() {
+            for (let y = 0; y < currentPiece.shape.length; y++) {
+                for (let x = 0; x < currentPiece.shape[y].length; x++) {
+                    if (
+                        currentPiece.shape[y][x] &&
+                        (currentPiece.y + y < 0 || // Check top boundary
+                         currentPiece.y + y >= ROWS || // Check bottom boundary
+                         currentPiece.x + x < 0 || // Check left boundary
+                         currentPiece.x + x >= COLS || // Check right boundary
+                         grid[currentPiece.y + y][currentPiece.x + x] !== 0) // Check collision with other blocks
+                    ) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function solidifyPiece() {
+            dropSound();
+            currentPiece.shape.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        if (currentPiece.y + y >= 0) { // Ensure we don't write outside the grid
+                            grid[currentPiece.y + y][currentPiece.x + x] = { letter: value, color: currentPiece.color };
+                        }
+                    }
+                });
+            });
+        }
+        
+        // --- Word Logic (Horizontal & Vertical) ---
+        function checkForWords() {
+            let wordsFound = [];
+            let cellsToClear = new Set();
+            const regex = /[A-Z]{3,}/g;
+
+            // Horizontal check
+            for (let y = 0; y < ROWS; y++) {
+                let rowStr = "";
+                for (let x = 0; x < COLS; x++) {
+                    rowStr += grid[y][x] ? grid[y][x].letter : " ";
+                }
+
+                let match;
+                while ((match = regex.exec(rowStr)) !== null) {
+                    const group = match[0];
+                    const groupStartIndex = match.index;
+
+                    for (let len = group.length; len >= 3; len--) {
+                        for (let i = 0; i <= group.length - len; i++) {
+                            const sub = group.substring(i, i + len);
+                            
+                            let partOfClearedWord = false;
+                            for (let k = 0; k < sub.length; k++) {
+                                if (cellsToClear.has(`${y},${groupStartIndex + i + k}`)) {
+                                    partOfClearedWord = true;
+                                    break;
+                                }
+                            }
+                            if (partOfClearedWord) continue;
+
+                            if (DICTIONARY.has(sub)) {
+                                wordsFound.push(sub);
+                                for (let k = 0; k < sub.length; k++) {
+                                    cellsToClear.add(`${y},${groupStartIndex + i + k}`);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Vertical check
+            for (let x = 0; x < COLS; x++) {
+                let colStr = "";
+                for (let y = 0; y < ROWS; y++) {
+                    colStr += grid[y][x] ? grid[y][x].letter : " ";
+                }
+                
+                let match;
+                regex.lastIndex = 0; // Reset regex from previous loop
+                while ((match = regex.exec(colStr)) !== null) {
+                    const group = match[0];
+                    const groupStartIndex = match.index;
+
+                    for (let len = group.length; len >= 3; len--) {
+                        for (let i = 0; i <= group.length - len; i++) {
+                            const sub = group.substring(i, i + len);
+
+                            let partOfClearedWord = false;
+                            for (let k = 0; k < sub.length; k++) {
+                                if (cellsToClear.has(`${groupStartIndex + i + k},${x}`)) {
+                                    partOfClearedWord = true;
+                                    break;
+                                }
+                            }
+                            if (partOfClearedWord) continue;
+                            
+                            if (DICTIONARY.has(sub)) {
+                                wordsFound.push(sub);
+                                for (let k = 0; k < sub.length; k++) {
+                                    cellsToClear.add(`${groupStartIndex + i + k},${x}`);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (cellsToClear.size > 0) {
+                clearWords(cellsToClear, wordsFound);
+            }
+        }
+        
+        function clearWords(cellsToClear, wordsFound) {
+            clearSound();
+            let pointsGained = 0;
+            
+            cellsToClear.forEach(cellCoord => {
+                const [y, x] = cellCoord.split(',').map(Number);
+                grid[y][x] = 0;
+                pointsGained += 10;
+            });
+
+            wordsFound.forEach(word => { pointsGained += word.length * 10; });
+
+            score += pointsGained;
+            wordsCleared += wordsFound.length;
+
+            if (wordsFound.length > 0) {
+                lastWordsHistory.unshift(...wordsFound);
+                lastWordsHistory = lastWordsHistory.slice(0, 2);
+            }
+
+            // New Level Up Logic
+            while (wordsCleared >= wordsForNextLevel) {
+                level++;
+                wordsForNextLevel += level * 10; 
+                dropInterval = Math.max(200, 1000 - (level * 50));
+            }
+
+            updateInfo();
+            applyPhysicsGravity();
+        }
+
+        function applyPhysicsGravity() {
+            let moved = false;
+            // For each column, compact blocks to the bottom
+            for (let x = 0; x < COLS; x++) {
+                let emptyRow = ROWS - 1;
+                for (let y = ROWS - 1; y >= 0; y--) {
+                    if (grid[y][x] !== 0) {
+                        if (y !== emptyRow) {
+                            grid[emptyRow][x] = grid[y][x];
+                            grid[y][x] = 0;
+                            moved = true;
+                        }
+                        emptyRow--;
+                    }
+                }
+            }
+            
+            // If any blocks settled, check for new words (chain reaction)
+            if (moved) {
+                draw(); // Redraw immediately to show settled blocks
+                setTimeout(() => {
+                    if (!isPaused && !gameOver) checkForWords();
+                }, 100);
+            }
+        }
+
+        function endGame() {
+            gameOver = true;
+            cancelAnimationFrame(animationFrameId);
+            gameOverSound();
+            modalTitle.textContent = "Game Over";
+            modalText.textContent = "You formed " + wordsCleared + " words!";
+            modalScore.textContent = "Final Score: " + score;
+            modalScore.style.display = 'block';
+            startButton.textContent = "Play Again";
+            pauseButton.disabled = true;
+            modal.style.display = 'flex';
+        }
+
+        function togglePause() {
+            if (gameOver) return;
+            isPaused = !isPaused;
+            if (isPaused) {
+                cancelAnimationFrame(animationFrameId);
+                pauseOverlay.classList.remove('hidden');
+                pauseButton.textContent = "Resume";
+            } else {
+                pauseOverlay.classList.add('hidden');
+                pauseButton.textContent = "Pause";
+                lastTime = performance.now(); // Reset time to prevent jump
+                gameLoop();
+            }
+        }
+
+        // --- Event Listeners ---
+        document.addEventListener('keydown', event => {
+            if (event.key.toLowerCase() === 'p') {
+                togglePause();
+                return;
+            }
+            if (gameOver || isPaused) return;
+
+            if (event.key === "ArrowLeft") {
+                pieceMove(-1);
+            } else if (event.key === "ArrowRight") {
+                pieceMove(1);
+            } else if (event.key === "ArrowDown") {
+                pieceDrop();
+            } else if (event.code === "Space") {
+                event.preventDefault(); // Prevent page from scrolling
+                pieceRotate();
+            }
+        });
+        
+        startButton.addEventListener('click', () => {
+            Tone.start();
+            resetGame();
+            pauseButton.disabled = false;
+            modal.style.display = 'none';
+            dropCounter = 0;
+            lastTime = 0;
+            gameLoop();
+        });
+
+        pauseButton.addEventListener('click', togglePause);
+
+        // Initialize display and load dictionary
+        modalScore.style.display = 'none';
+        startButton.disabled = true;
+        pauseButton.disabled = true;
+        loadDictionary();
+
+    </script>
+</body>
+</html>
+
