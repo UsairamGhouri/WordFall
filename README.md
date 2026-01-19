@@ -1,7 +1,7 @@
 # 🧩 WordFall
 
 ![Version](https://img.shields.io/badge/version-1.0.0-cyan)
-![License](https://img.shields.io/badge/license-MIT-purple)
+![License](https://img.shields.io/badge/license-GNU-purple)
 ![Style](https://img.shields.io/badge/style-Retro%20Cyberpunk-yellow)
 
 **WordFall** is an arcade-style browser game that fuses the falling-block mechanics of Tetris with crossword puzzle logic. Set in a neon, retro-futuristic interface, players must manipulate falling tetrominos composed of letters to form words, clear the grid, and survive increasing speeds.
