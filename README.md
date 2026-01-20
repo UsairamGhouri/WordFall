@@ -68,7 +68,7 @@ Since WordFall is built as a single-file application using CDNs, no build proces
 
 ## 🔮 Future Improvements
 
-* [ ] Local High Score saving (using LocalStorage).
+* [ ] Local High Score saving (using Local-Storage).
 * [ ] "Hold Piece" functionality.
 * [ ] Mobile touch controls.
 * [ ] Particle effects on word clearing.
