@@ -1,4 +1,4 @@
-# 🧩 WordFall
+#  WordFall
 
 ![Version](https://img.shields.io/badge/version-1.0.0-cyan)
 ![License](https://img.shields.io/badge/license-GNU-purple)
@@ -6,7 +6,7 @@
 
 **WordFall** is an arcade-style browser game that fuses the falling-block mechanics of Tetris with crossword puzzle logic. Set in a neon, retro-futuristic interface, players must manipulate falling tetrominos composed of letters to form words, clear the grid, and survive increasing speeds.
 
-## 🎮 Game Overview
+##  Game Overview
 
 Blocks fall from the top of the screen in various shapes. Each block contains random letters (weighted between vowels and consonants). Your goal is to arrange these blocks to form valid English words (3 letters or more) horizontally or vertically.
 
@@ -15,7 +15,7 @@ When a word is formed:
 2. Points are awarded based on word length.
 3. Remaining blocks obey gravity and fall to fill empty spaces (potentially creating chain reactions!).
 
-## ✨ Key Features
+##  Key Features
 
 * **Hybrid Gameplay:** Classic block stacking meets anagram solving.
 * **Physics System:** Blocks settle and fall when support is removed, allowing for strategic combos.
@@ -25,7 +25,7 @@ When a word is formed:
 * **Synthesized Audio:** Real-time sound effects generated via **Tone.js**.
 * **Responsive:** Built with Tailwind CSS for layout adaptation.
 
-## 🕹️ Controls
+##  Controls
 
 | Key | Action |
 | :--- | :--- |
@@ -35,7 +35,7 @@ When a word is formed:
 | **Spacebar** | Rotate Piece |
 | **P** | Pause / Resume Game |
 
-## 🚀 How to Run
+##  How to Run
 
 Since WordFall is built as a single-file application using CDNs, no build process or package manager (npm/yarn) is required.
 
@@ -51,7 +51,7 @@ Since WordFall is built as a single-file application using CDNs, no build proces
 2.  Open the file directly in any modern web browser (Chrome, Firefox, Edge, Safari).
 3.  Click **"Start Game"** to initialize the audio engine and begin.
 
-## 🛠️ Technical Stack
+##  Technical Stack
 
 * **Core:** HTML5, vanilla JavaScript (ES6+).
 * **Rendering:** HTML5 `<canvas>` API for the game grid.
@@ -59,24 +59,28 @@ Since WordFall is built as a single-file application using CDNs, no build proces
 * **Audio:** [Tone.js](https://tonejs.github.io/) (via CDN) for procedural sound synthesis.
 * **Data:** Fetches word list dynamically from `dwyl/english-words`.
 
-## 📝 Rules & Scoring
+##  Rules & Scoring
 
 1.  **Valid Words:** Must be **3 letters** or longer.
 2.  **Direction:** Words can be formed Horizontally (Left-to-Right) or Vertically (Top-to-Bottom).
 3.  **Game Over:** The game ends if the stack of blocks reaches the top of the grid.
 4.  **Level Up:** Cleared words increase the level counter. Higher levels increase the drop speed of pieces.
 
-## 🔮 Future Improvements
+##  Future Improvements
 
 * [ ] Local High Score saving (using Local-Storage).
 * [ ] "Hold Piece" functionality.
 * [ ] Mobile touch controls.
 * [ ] Particle effects on word clearing.
 
-## 📄 Credits
+##  Credits
 
 * **Font:** "Press Start 2P" by CodeMan38 (Google Fonts).
 * **Dictionary:** Sourced from [dwyl/english-words](https://github.com/dwyl/english-words).
 
----
+License
+-------
+
+This project is licensed under the terms provided in the [LICENSE](./LICENSE) file.
+
 *Enjoy the game!*
